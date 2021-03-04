@@ -68,7 +68,7 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 // // implements nodejs wrappers for HTMLCanvasElement, HTMLImageElement, ImageData
 // import * as canvas from 'canvas';
 
-// import * as faceapi from 'face-api.js';
+import * as faceapi from 'face-api.js';
 
 // // patch nodejs environment, we need to provide an implementation of
 // // HTMLCanvasElement and HTMLImageElement
