@@ -2,9 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import * as faceapi from 'face-api.js';
 import * as canvas from 'canvas';
 import { TNetInput } from 'face-api.js';
+import * as fs from 'fs';
 
 const { Canvas, Image, ImageData } = canvas;
-const faceDetectionNet = faceapi.nets.ssdMobilenetv1;
+
+console.log(typeof Canvas, canvas)
+const faceDetectionNet = faceapi.nets.faceExpressionNet;
 // export const faceDetectionNet = tinyFaceDetector
 
 // SsdMobilenetv1Options
@@ -32,13 +35,17 @@ export class AppComponent implements OnInit {
 
 
     // await faceDetectionNet.loadFromDisk('../../weights')
-
+  console.log(faceapi.nets)
   const img: any = (await canvas.loadImage('assets/descargar.jpg'))
-  faceDetectionNet.loadFromUri('https://github.com/justadudewhohacks/face-api.js/blob/a86f011d72124e5fb93e59d5c4ab98f699dd5c9c/weights/ssd_mobilenetv1_model-shard1')
+  // await faceDetectionNet.locateFaces('../assets/ssd_mobilenetv1_model-shard1')
   const detections = await faceapi.detectAllFaces(img, this.faceDetectionOptions(faceDetectionNet))
 
   const out = faceapi.createCanvasFromMedia(img) as any
   faceapi.draw.drawDetections(out, detections)
+
+  // faceapi.env.monkeyPatch({
+  //   readFile: () => fs.readFile('../assets/ssd_mobilenetv1_model-shard1')
+  //   })
     
     // const detections = await faceapi.detectAllFaces(input)
     // const image = await faceapi.fetchImage('ssets/descargar.jpg');
