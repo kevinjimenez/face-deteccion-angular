@@ -85,22 +85,29 @@ export class AppComponent implements OnInit {
               const resultadoDeteccion = await faceapi
                 .detectAllFaces(
                   this.video.nativeElement,
-                  new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.5})
+                  new faceapi.TinyFaceDetectorOptions()
                 )
                 .withFaceLandmarks()
                 .withFaceExpressions();
               console.log('resultadoDeteccion');
-              console.log(resultadoDeteccion);
-              const resizedDetections = faceapi.resizeResults(
-                resultadoDeteccion,
-                displaySize
-              );
-              canvasVideo
-                .getContext('2d')
-                .clearRect(0, 0, canvasVideo.width, canvasVideo.height);
-              faceapi.draw.drawDetections(canvasVideo, resizedDetections);
-              faceapi.draw.drawFaceLandmarks(canvasVideo, resizedDetections);
-              faceapi.draw.drawFaceExpressions(canvasVideo, resizedDetections);
+              if (resultadoDeteccion.length > 0) {
+                console.log(resultadoDeteccion[0].expressions.happy >= 0.90 ? 'es feliz' : '');
+                console.log(resultadoDeteccion[0].expressions.surprised >= 0.90 ? 'boca abierta o sorpendido' : '');
+                const resizedDetections = faceapi.resizeResults(
+                  resultadoDeteccion,
+                  displaySize
+                );
+                canvasVideo
+                  .getContext('2d')
+                  .clearRect(0, 0, canvasVideo.width, canvasVideo.height);
+                faceapi.draw.drawDetections(canvasVideo, resizedDetections);
+                faceapi.draw.drawFaceLandmarks(canvasVideo, resizedDetections);
+                faceapi.draw.drawFaceExpressions(
+                  canvasVideo,
+                  resizedDetections
+                );
+              }
+              // stream.getTracks()[0].stop();
             });
           }
         );
