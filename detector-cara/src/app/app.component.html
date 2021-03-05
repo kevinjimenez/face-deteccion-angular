@@ -1,18 +1,17 @@
 <h1>video</h1>
-<br><br><br><br>
+<br /><br /><br /><br />
 <canvas #canvas1 width="600" height="300"></canvas>
 <!-- <img id="myImg" [src]="'assets/images/surprised.jpg'" /> -->
-
 
 <h1>uktra video</h1>
 
 <div id="app">
-    <div><video #video id="video" width="640" height="480" autoplay></video></div>
-    <div><button id="snap" (click)="capture()">Snap Photo</button></div>
-    <canvas #canvas id="canvas" width="640" height="480"></canvas>
-    <ul>
-        <li *ngFor="let c of captures">
-            <img src="{{ c }}" height="50" />
-        </li>
-    </ul>
+  <div><video #video id="video" width="640" height="480" autoplay></video></div>
+  <div><button id="snap" (click)="capture()">Snap Photo</button></div>
+  <canvas #canvas id="canvas" width="640" height="480"></canvas>
+  <ul>
+    <li *ngFor="let c of captures">
+      <img src="{{ c }}" height="50" />
+    </li>
+  </ul>
 </div>
