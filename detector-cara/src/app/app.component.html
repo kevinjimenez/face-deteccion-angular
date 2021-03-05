@@ -12,12 +12,19 @@
   </div>
 </div>
 
-
 <div class="row">
   <div class="col-sm-12">
-    <div><video #video id="video" width="720" height="560" autoplay muted></video></div>
+    <div>
+      <video
+        #video
+        id="video"
+        width="720"
+        height="560"
+        autoplay
+      ></video>
+    </div>
     <div><button id="snap" (click)="capture()">Snap Photo</button></div>
-    <canvas #canvas id="canvas" width="640" height="480"></canvas>
+    <!-- <canvas #canvas id="canvas" width="640" height="480"></canvas> -->
     <!-- <canvas #canvas id="canvas" width="640" height="480"></canvas>
     <ul>
       <li *ngFor="let c of captures">
@@ -25,7 +32,7 @@
       </li>
     </ul> -->
   </div>
-</div> 
+</div>
 <!-- <div id="app">
   <div><video #video id="video" width="640" height="480" autoplay></video></div>
   <div><button id="snap" (click)="capture()">Snap Photo</button></div>

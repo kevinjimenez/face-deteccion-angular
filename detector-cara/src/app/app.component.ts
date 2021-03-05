@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  Renderer2,
+  ViewChild,
+} from '@angular/core';
 import * as faceapi from 'face-api.js';
 import * as canvas from 'canvas';
 import { configuracionModeloTinyFaceDetectorOptions } from './funciones/modelo-deteccion.config';
@@ -9,7 +15,6 @@ import { EventManager } from '@angular/platform-browser';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-
   // obtener elemento canvas del html
   @ViewChild('caraConExpresiones', { static: true })
   caraConExpresiones: ElementRef<HTMLCanvasElement>;
@@ -24,11 +29,15 @@ export class AppComponent implements OnInit {
   video: ElementRef<HTMLVideoElement>;
 
   @ViewChild('canvas')
-  canvas: ElementRef;
+  canvas1: ElementRef<HTMLCanvasElement>;
+  htnl;
 
   captures: Array<any>;
 
-  constructor(private readonly _eventManager: EventManager) {
+  constructor(
+    private readonly _eventManager: EventManager,
+    private readonly _renderer2: Renderer2
+  ) {
     this.captures = [];
   }
 
@@ -39,36 +48,36 @@ export class AppComponent implements OnInit {
     this.streamVideo();
   }
 
-  async ngAfterViewInit() {
-    
-    
-  }
+  async ngAfterViewInit() {}
 
-  streamVideo(){
+  streamVideo() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
         console.log(stream);
         var video = this.video.nativeElement;
         video.srcObject = stream;
+
         this._eventManager.addEventListener(
           this.video.nativeElement,
           'play',
           (evento) => {
-            console.log('llegue', evento);
-            const canvas = faceapi.createCanvasFromMedia(
+            const canvasVideo = faceapi.createCanvasFromMedia(
               this.video.nativeElement
             );
-            this.video.nativeElement.append(canvas)
-            // document.body.append(canvas);
-            console.log('canvas');
-            console.log(canvas);
+            // this._renderer2.appendChild(
+            //   this.video.nativeElement,
+            //   canvasVideo
+            // );
+            this._renderer2.appendChild(
+              this.video.nativeElement.parentNode,
+              canvasVideo
+            );
+            // document.body.appendChild(canvasVideo);
             const displaySize = {
               width: this.video.nativeElement.width,
               height: this.video.nativeElement.height,
             };
-            const a = faceapi.matchDimensions(canvas, displaySize);
-            console.log(a);
-            
+            faceapi.matchDimensions(canvasVideo, displaySize);
             setInterval(async () => {
               const detections = await faceapi
                 .detectAllFaces(
@@ -77,18 +86,19 @@ export class AppComponent implements OnInit {
                 )
                 .withFaceLandmarks()
                 .withFaceExpressions();
-                console.log(detections);
-                
+              console.log('detections');
+              console.log(detections);
               const resizedDetections = faceapi.resizeResults(
                 detections,
                 displaySize
               );
-              canvas
+
+              canvasVideo
                 .getContext('2d')
-                .clearRect(0, 0, canvas.width, canvas.height);
-              faceapi.draw.drawDetections(canvas, resizedDetections);
-              faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-              faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+                .clearRect(0, 0, canvasVideo.width, canvasVideo.height);
+              faceapi.draw.drawDetections(canvasVideo, resizedDetections);
+              faceapi.draw.drawFaceLandmarks(canvasVideo, resizedDetections);
+              faceapi.draw.drawFaceExpressions(canvasVideo, resizedDetections);
             }, 1000);
           }
         );
@@ -97,10 +107,10 @@ export class AppComponent implements OnInit {
   }
 
   capture() {
-    var context = this.canvas.nativeElement
-      .getContext('2d')
-      .drawImage(this.video.nativeElement, 0, 0, 640, 480);
-    this.captures.push(this.canvas.nativeElement.toDataURL('image/png'));
+    // var context = this.canvas.nativeElement
+    //   .getContext('2d')
+    //   .drawImage(this.video.nativeElement, 0, 0, 640, 480);
+    // this.captures.push(this.canvas.nativeElement.toDataURL('image/png'));
   }
 
   async detectarCaraImagenConExpresiones() {
