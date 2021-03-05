@@ -2,12 +2,14 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import * as faceapi from 'face-api.js';
 import * as canvas from 'canvas';
 import { configuracionModeloTinyFaceDetectorOptions } from './funciones/modelo-deteccion.config';
+import { EventManager } from '@angular/platform-browser';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
+
   // obtener elemento canvas del html
   @ViewChild('caraConExpresiones', { static: true })
   caraConExpresiones: ElementRef<HTMLCanvasElement>;
@@ -19,29 +21,77 @@ export class AppComponent implements OnInit {
   private cavasRendercaraConExpresionesDibujar: CanvasRenderingContext2D;
 
   @ViewChild('video')
-  video: ElementRef;
+  video: ElementRef<HTMLVideoElement>;
 
   @ViewChild('canvas')
   canvas: ElementRef;
 
   captures: Array<any>;
 
-  constructor() {
+  constructor(private readonly _eventManager: EventManager) {
     this.captures = [];
   }
 
-  async ngOnInit() {}
-
-  async ngAfterViewInit() {
+  async ngOnInit() {
     await this.cargarModelosFaceApi();
     await this.detectarCaraImagenConExpresiones();
     await this.detectarCaraImagenConExpresionesDibujar();
+    this.streamVideo();
+  }
+
+  async ngAfterViewInit() {
+    
+    
+  }
+
+  streamVideo(){
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
         console.log(stream);
         var video = this.video.nativeElement;
         video.srcObject = stream;
-        this.video.nativeElement.play();
+        this._eventManager.addEventListener(
+          this.video.nativeElement,
+          'play',
+          (evento) => {
+            console.log('llegue', evento);
+            const canvas = faceapi.createCanvasFromMedia(
+              this.video.nativeElement
+            );
+            this.video.nativeElement.append(canvas)
+            // document.body.append(canvas);
+            console.log('canvas');
+            console.log(canvas);
+            const displaySize = {
+              width: this.video.nativeElement.width,
+              height: this.video.nativeElement.height,
+            };
+            const a = faceapi.matchDimensions(canvas, displaySize);
+            console.log(a);
+            
+            setInterval(async () => {
+              const detections = await faceapi
+                .detectAllFaces(
+                  this.video.nativeElement,
+                  new faceapi.TinyFaceDetectorOptions()
+                )
+                .withFaceLandmarks()
+                .withFaceExpressions();
+                console.log(detections);
+                
+              const resizedDetections = faceapi.resizeResults(
+                detections,
+                displaySize
+              );
+              canvas
+                .getContext('2d')
+                .clearRect(0, 0, canvas.width, canvas.height);
+              faceapi.draw.drawDetections(canvas, resizedDetections);
+              faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+              faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+            }, 1000);
+          }
+        );
       });
     }
   }
@@ -152,14 +202,8 @@ export class AppComponent implements OnInit {
       this.cavasRendercaraConExpresionesDibujar,
       perfilCara
     );
-    faceapi.draw.drawContour(
-      this.cavasRendercaraConExpresionesDibujar,
-      nariz
-    );
-    faceapi.draw.drawContour(
-      this.cavasRendercaraConExpresionesDibujar,
-      boca
-    );
+    faceapi.draw.drawContour(this.cavasRendercaraConExpresionesDibujar, nariz);
+    faceapi.draw.drawContour(this.cavasRendercaraConExpresionesDibujar, boca);
     faceapi.draw.drawContour(
       this.cavasRendercaraConExpresionesDibujar,
       ojoIzquierdo
