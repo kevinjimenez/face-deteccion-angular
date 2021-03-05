@@ -9,6 +9,8 @@ import * as faceapi from 'face-api.js';
 import * as canvas from 'canvas';
 import { configuracionModeloTinyFaceDetectorOptions } from './funciones/modelo-deteccion.config';
 import { EventManager } from '@angular/platform-browser';
+import { interval } from 'rxjs';
+import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -30,7 +32,8 @@ export class AppComponent implements OnInit {
 
   @ViewChild('canvas')
   canvas1: ElementRef<HTMLCanvasElement>;
-  htnl;
+
+  tiempoIntervalo = 100;
 
   captures: Array<any>;
 
@@ -43,8 +46,8 @@ export class AppComponent implements OnInit {
 
   async ngOnInit() {
     await this.cargarModelosFaceApi();
-    await this.detectarCaraImagenConExpresiones();
-    await this.detectarCaraImagenConExpresionesDibujar();
+    // await this.detectarCaraImagenConExpresiones();
+    // await this.detectarCaraImagenConExpresionesDibujar();
     this.streamVideo();
   }
 
@@ -53,7 +56,6 @@ export class AppComponent implements OnInit {
   streamVideo() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-        console.log(stream);
         var video = this.video.nativeElement;
         video.srcObject = stream;
 
@@ -72,34 +74,34 @@ export class AppComponent implements OnInit {
               this.video.nativeElement.parentNode,
               canvasVideo
             );
-            // document.body.appendChild(canvasVideo);
             const displaySize = {
               width: this.video.nativeElement.width,
               height: this.video.nativeElement.height,
             };
             faceapi.matchDimensions(canvasVideo, displaySize);
-            setInterval(async () => {
-              const detections = await faceapi
+            const intervaloCapturaCara = interval(this.tiempoIntervalo);
+
+            intervaloCapturaCara.subscribe(async () => {
+              const resultadoDeteccion = await faceapi
                 .detectAllFaces(
                   this.video.nativeElement,
-                  new faceapi.TinyFaceDetectorOptions()
+                  new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.5})
                 )
                 .withFaceLandmarks()
                 .withFaceExpressions();
-              console.log('detections');
-              console.log(detections);
+              console.log('resultadoDeteccion');
+              console.log(resultadoDeteccion);
               const resizedDetections = faceapi.resizeResults(
-                detections,
+                resultadoDeteccion,
                 displaySize
               );
-
               canvasVideo
                 .getContext('2d')
                 .clearRect(0, 0, canvasVideo.width, canvasVideo.height);
               faceapi.draw.drawDetections(canvasVideo, resizedDetections);
               faceapi.draw.drawFaceLandmarks(canvasVideo, resizedDetections);
               faceapi.draw.drawFaceExpressions(canvasVideo, resizedDetections);
-            }, 1000);
+            });
           }
         );
       });
